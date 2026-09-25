@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fieldstone &middot; Report Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">Fs</span>
+      <div class="brand-text">
+        <h1>Fieldstone</h1>
+        <p>Report card workbench</p>
+      </div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="import">Import roster</button>
+      <button class="tab-btn" data-tab="login">Teacher login</button>
+      <button class="tab-btn" data-tab="dashboard" disabled>My gradebook</button>
+      <button class="tab-btn" data-tab="reports" disabled>Report cards</button>
+      <button class="tab-btn" data-tab="export" disabled>Export</button>
+    </nav>
+
+    <div class="session-pill" id="sessionPill" hidden>
+      Signed in as <strong id="sessionTeacherName"></strong>
+      <button id="switchTeacherBtn" class="link-btn">switch</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- IMPORT -->
+    <section class="panel" id="panel-import">
+      <div class="panel-head">
+        <h2>Import this term&rsquo;s roster</h2>
+        <p>Upload a spreadsheet with three columns &mdash; <strong>Student</strong>, <strong>Subject</strong>, <strong>Teacher</strong> &mdash; one row per subject assignment. Re-importing replaces the roster but keeps any grades already entered for unchanged assignments.</p>
+      </div>
+
+      <form id="importForm" class="import-card">
+        <label for="fileInput" class="dropzone" id="dropzone">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4V16M12 4L7 9M12 4L17 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 16V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span id="dropzoneText">Click to choose an .xlsx file, or drag it here</span>
+          <input type="file" id="fileInput" name="file" accept=".xlsx,.xls" hidden />
+        </label>
+        <div class="import-actions">
+          <button type="submit" class="btn btn-primary" id="importBtn">Import roster</button>
+          <span class="hint">No file handy? Run <code>npm run generate-sample</code> to create one at <code>data/sample-import.xlsx</code>.</span>
+        </div>
+      </form>
+
+      <div id="importStatus" class="status-msg" hidden></div>
+
+      <div id="importSummary" class="summary-grid" hidden>
+        <div class="summary-card sage">
+          <span class="summary-num" id="summaryStudents">0</span>
+          <span class="summary-label">Students</span>
+        </div>
+        <div class="summary-card blush">
+          <span class="summary-num" id="summaryTeachers">0</span>
+          <span class="summary-label">Teachers</span>
+        </div>
+        <div class="summary-card sky">
+          <span class="summary-num" id="summaryAssignments">0</span>
+          <span class="summary-label">Subject assignments</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGIN -->
+    <section class="panel" id="panel-login" hidden>
+      <div class="panel-head">
+        <h2>Log in as a teacher</h2>
+        <p>No password &mdash; just choose a name to simulate that teacher&rsquo;s view of the system.</p>
+      </div>
+      <div class="login-card">
+        <label for="teacherSelect">Teacher</label>
+        <select id="teacherSelect"></select>
+        <button class="btn btn-primary" id="loginBtn">Log in</button>
+      </div>
+    </section>
+
+    <!-- TEACHER DASHBOARD -->
+    <section class="panel" id="panel-dashboard" hidden>
+      <div class="panel-head">
+        <h2>My gradebook</h2>
+        <p id="dashboardSub">Enter a grade and a short comment for each of your students. Changes save automatically.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="grade-table" id="gradeTable">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Subject</th>
+              <th>Grade</th>
+              <th>Comment</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="gradeTableBody"></tbody>
+        </table>
+      </div>
+      <p class="empty-note" id="dashboardEmpty" hidden>No students are assigned to this teacher yet.</p>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="panel" id="panel-reports" hidden>
+      <div class="panel-head">
+        <h2>Report cards</h2>
+        <p>Pull together every teacher&rsquo;s grades and comments for a student, ready to view or print.</p>
+      </div>
+
+      <div class="reports-toolbar">
+        <div class="field-inline">
+          <label for="studentSelect">Student</label>
+          <select id="studentSelect"></select>
+          <button class="btn btn-primary" id="viewReportBtn">View report card</button>
+        </div>
+        <div class="field-inline">
+          <button class="btn btn-outline" id="viewAllBtn">View all report cards</button>
+          <button class="btn btn-ghost" id="printBtn">Print</button>
+        </div>
+      </div>
+
+      <div id="reportArea" class="report-area"></div>
+    </section>
+
+    <!-- EXPORT -->
+    <section class="panel" id="panel-export" hidden>
+      <div class="panel-head">
+        <h2>Export for record-keeping</h2>
+        <p>Download every grade and comment entered this term, across all teachers, as a single spreadsheet.</p>
+      </div>
+      <div class="export-card">
+        <div class="export-copy">
+          <h3>gradebook-export.xlsx</h3>
+          <p>Student, Subject, Teacher, Grade and Comment &mdash; one row per subject assignment.</p>
+        </div>
+        <button class="btn btn-primary" id="exportBtn">Download spreadsheet</button>
+      </div>
+      <div id="exportStatus" class="status-msg" hidden></div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
