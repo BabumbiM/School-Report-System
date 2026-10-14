@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fieldstone &middot; Report Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">Fs</span>
+      <div class="brand-text">
+        <h1>Fieldstone</h1>
+        <p>Report card workbench</p>
+      </div>
+    </div>
+
+    <nav class="tabs" id="tabs"></nav>
+
+    <div class="session-pill" id="sessionPill" hidden>
+      <span><strong id="sessionName"></strong> <span class="role-label" id="sessionRoles"></span></span>
+      <button id="signOutBtn" class="link-btn">sign out</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- IMPORT -->
+    <section class="panel" id="panel-import">
+      <div class="panel-head">
+        <h2>Import the school workbook</h2>
+        <p>Upload the school&rsquo;s Excel workbook. The importer reads the <strong>Registration</strong> sheets (class, registration teacher, students, subjects and subject teachers) and the <strong>Assessments</strong> sheets (Paper 1&ndash;3 marks for Terms 1, 2 and 3). The other sheets in the workbook (averages, Top 10, teacher sheets and so on) are calculated by the system, so they are skipped.</p>
+      </div>
+
+      <form id="importForm" class="import-card">
+        <label for="fileInput" class="dropzone" id="dropzone">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4V16M12 4L7 9M12 4L17 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 16V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span id="dropzoneText">Click to choose an .xlsx file, or drag it here</span>
+          <input type="file" id="fileInput" name="file" accept=".xlsx,.xls" hidden />
+        </label>
+        <div class="import-actions">
+          <button type="submit" class="btn btn-primary" id="importBtn">Import workbook</button>
+          <span class="hint">Marks in the file replace what&rsquo;s in the system; blank cells keep marks already entered here.</span>
+        </div>
+      </form>
+
+      <div id="importStatus" class="status-msg" hidden></div>
+
+      <div id="importSummary" class="summary-grid four" hidden>
+        <div class="summary-card sage"><span class="summary-num" id="sumStudents">0</span><span class="summary-label">Students</span></div>
+        <div class="summary-card blush"><span class="summary-num" id="sumClasses">0</span><span class="summary-label">Classes</span></div>
+        <div class="summary-card sky"><span class="summary-num" id="sumTeachers">0</span><span class="summary-label">Teachers</span></div>
+        <div class="summary-card sun"><span class="summary-num" id="sumAssignments">0</span><span class="summary-label">Subject assignments</span></div>
+      </div>
+      <div id="importWarnings" class="note-box" hidden></div>
+    </section>
+
+    <!-- SIGN IN -->
+    <section class="panel" id="panel-login" hidden>
+      <div class="panel-head">
+        <h2>Sign in</h2>
+        <p>No password &mdash; choose who you are. What you can see and do depends on your role: headmaster, head of department, subject teacher, registration teacher or matron.</p>
+      </div>
+      <div class="login-card">
+        <label for="staffSelect">Staff member</label>
+        <select id="staffSelect"></select>
+        <button class="btn btn-primary" id="loginBtn">Sign in</button>
+      </div>
+    </section>
+
+    <!-- HEADMASTER: OVERVIEW -->
+    <section class="panel" id="panel-overview" hidden>
+      <div class="panel-head with-term">
+        <div><h2>School performance</h2><p>Class averages, top students, struggling students and teacher performance for the whole school.</p></div>
+        <label class="term-pick">Term <select class="term-select"></select></label>
+      </div>
+      <div id="ovStats" class="summary-grid four"></div>
+      <section class="block"><h3>Class averages</h3><div class="table-wrap" id="ovClasses"></div></section>
+      <section class="block"><h3>Top achiever per form</h3><div class="table-wrap" id="ovTopOnes"></div></section>
+      <section class="block">
+        <div class="block-head"><h3>Top 10 students</h3><div class="pill-tabs" id="ovTopTabs"></div></div>
+        <div class="table-wrap" id="ovTopTen"></div>
+      </section>
+      <section class="block"><h3>Students below 50%</h3><div class="table-wrap" id="ovBottom"></div></section>
+      <section class="block">
+        <div class="block-head"><h3>Teacher performance</h3><div class="pill-tabs" id="ovTeacherTabs"></div></div>
+        <div class="table-wrap" id="ovTeachers"></div>
+      </section>
+    </section>
+
+    <!-- HEADMASTER: MASTER TABLE -->
+    <section class="panel" id="panel-students" hidden>
+      <div class="panel-head with-term">
+        <div><h2>Student performance &mdash; master table</h2><p>Every student, every subject, with average, grade and rank. Click a column heading to sort.</p></div>
+        <label class="term-pick">Term <select class="term-select"></select></label>
+      </div>
+      <div class="toolbar">
+        <label>Class <select id="msClass"></select></label>
+        <label>Status <select id="msStatus"><option value="">All</option><option>Boarder</option><option>Day Scholar</option></select></label>
+        <input id="msSearch" type="search" placeholder="Search name or ID…" />
+        <span class="hint" id="msCount"></span>
+      </div>
+      <div class="table-wrap scroll" id="msTable"></div>
+    </section>
+
+    <!-- HEAD OF DEPARTMENT -->
+    <section class="panel" id="panel-department" hidden>
+      <div class="panel-head with-term">
+        <div><h2 id="deptTitle">Department</h2><p id="deptSub">Your department&rsquo;s teachers and the students who take its subjects.</p></div>
+        <div class="head-controls">
+          <label class="term-pick" id="deptPick" hidden>Department <select id="deptSelect"></select></label>
+          <label class="term-pick">Term <select class="term-select"></select></label>
+        </div>
+      </div>
+      <div id="deptStats" class="summary-grid four"></div>
+      <section class="block"><h3>Subject averages</h3><div class="table-wrap" id="deptSubjects"></div></section>
+      <section class="block">
+        <div class="block-head"><h3>Our teachers</h3><div class="pill-tabs" id="deptTeacherTabs"></div></div>
+        <div class="table-wrap" id="deptTeachers"></div>
+      </section>
+      <section class="block"><h3>Our students</h3><div class="table-wrap scroll" id="deptStudents"></div></section>
+    </section>
+
+    <!-- REGISTRATION TEACHER: MY CLASS -->
+    <section class="panel" id="panel-class" hidden>
+      <div class="panel-head with-term">
+        <div><h2 id="classTitle">My class</h2><p id="classSub">How your registration class is performing.</p></div>
+        <div class="head-controls">
+          <label class="term-pick" id="classPick" hidden>Class <select id="classSelect"></select></label>
+          <label class="term-pick">Term <select class="term-select"></select></label>
+        </div>
+      </div>
+      <div id="classStats" class="summary-grid four"></div>
+      <section class="block"><h3>Subject performance in this class</h3><div class="table-wrap" id="classSubjects"></div></section>
+      <section class="block"><h3>Students</h3><div class="table-wrap scroll" id="classStudents"></div></section>
+    </section>
+
+    <!-- REGISTRATION TEACHER: REGISTER STUDENTS -->
+    <section class="panel" id="panel-register" hidden>
+      <div class="panel-head">
+        <h2>Register a new student</h2>
+        <p id="regSub">Add a student to your class. They are given the next student ID and the class&rsquo;s usual subject teachers, who will see them in their gradebooks straight away.</p>
+      </div>
+      <form id="registerForm" class="staff-card">
+        <div class="staff-row"><label for="regClass">Class</label><select id="regClass"></select></div>
+        <div class="staff-row"><label for="regName">Full name</label><input id="regName" type="text" autocomplete="off" placeholder="e.g. Kagiso Molefe" /></div>
+        <div class="staff-row"><label for="regStatus">School status</label>
+          <select id="regStatus"><option>Day Scholar</option><option>Boarder</option></select></div>
+        <h3>Subjects &amp; subject teachers</h3>
+        <p class="hint" id="regSubjectsHint"></p>
+        <div id="regSubjects" class="reg-subjects"></div>
+        <button type="submit" class="btn btn-primary" id="regBtn">Register student</button>
+      </form>
+      <div id="regStatusMsg" class="status-msg" hidden></div>
+      <section class="block"><h3 id="regListTitle">Students in this class</h3><div class="table-wrap scroll" id="regList"></div></section>
+    </section>
+
+    <!-- MATRON -->
+    <section class="panel" id="panel-boarders" hidden>
+      <div class="panel-head with-term">
+        <div><h2>Boarding students</h2><p>Performance of every student who boards.</p></div>
+        <label class="term-pick">Term <select class="term-select"></select></label>
+      </div>
+      <div id="boStats" class="summary-grid four"></div>
+      <section class="block"><h3>Boarders by class</h3><div class="table-wrap" id="boClasses"></div></section>
+      <section class="block"><h3>Boarding student performance</h3><div class="table-wrap scroll" id="boStudents"></div></section>
+    </section>
+
+    <!-- SUBJECT TEACHER: GRADEBOOK -->
+    <section class="panel" id="panel-gradebook" hidden>
+      <div class="panel-head with-term">
+        <div><h2>My gradebook</h2><p id="gbSub">Enter Paper 1&ndash;3 marks for your students. Average, percentage, grade and comment are worked out for you; changes save automatically.</p></div>
+        <label class="term-pick">Term <select class="term-select"></select></label>
+      </div>
+      <div class="toolbar">
+        <label>Class <select id="gbClass"></select></label>
+        <label>Subject <select id="gbSubject"></select></label>
+        <span class="hint" id="gbCount"></span>
+      </div>
+      <div class="table-wrap scroll">
+        <table class="grade-table" id="gbTable">
+          <thead>
+            <tr><th>Student</th><th>Class</th><th>Subject</th><th>Paper 1</th><th>Paper 2</th><th>Paper 3</th><th>Avg</th><th>%</th><th>Grade</th><th>Comment</th><th></th></tr>
+          </thead>
+          <tbody id="gbBody"></tbody>
+        </table>
+      </div>
+      <p class="empty-note" id="gbEmpty" hidden>No students match.</p>
+    </section>
+
+    <!-- REPORT CARDS -->
+    <section class="panel" id="panel-reports" hidden>
+      <div class="panel-head">
+        <h2>Report cards</h2>
+        <p id="repSub">The school&rsquo;s Student Progress Report for one term. View it here, print it, or download it as a Word file made from the school template.</p>
+      </div>
+      <div class="reports-toolbar">
+        <div class="field-inline">
+          <label for="repClass">Class</label>
+          <select id="repClass"></select>
+          <label for="repTerm">Term</label>
+          <select id="repTerm">
+            <option value="1">Term 1</option>
+            <option value="2">Term 2</option>
+            <option value="3" selected>Term 3 / Final Exam</option>
+          </select>
+          <label for="repStudent">Student</label>
+          <select id="repStudent"></select>
+          <button class="btn btn-primary" id="viewReportBtn">View report card</button>
+        </div>
+        <div class="field-inline">
+          <button class="btn btn-outline" id="viewClassBtn">View whole class</button>
+          <button class="btn btn-outline" id="docxStudentBtn" title="Download this student's report as a Word file made from the school template">Word: this student</button>
+          <button class="btn btn-outline" id="docxClassBtn" title="Download every student in the selected class, one page each">Word: whole class</button>
+          <button class="btn btn-ghost" id="printBtn">Print</button>
+        </div>
+      </div>
+      <div id="reportArea" class="report-area"></div>
+    </section>
+
+    <!-- STAFF & ROLES -->
+    <section class="panel" id="panel-staff" hidden>
+      <div class="panel-head">
+        <h2>Staff &amp; roles</h2>
+        <p>Subject teachers and registration teachers come straight from the workbook. Here you decide who is headmaster, who heads each department, and who the matrons are.</p>
+      </div>
+      <form id="staffForm" class="staff-card"></form>
+      <div id="staffStatus" class="status-msg" hidden></div>
+    </section>
+
+    <!-- EXPORT -->
+    <section class="panel" id="panel-export" hidden>
+      <div class="panel-head">
+        <h2>Export to Excel</h2>
+        <p id="exportSub">Download the marks and performance tables you have access to as one spreadsheet.</p>
+      </div>
+      <div class="export-card">
+        <div class="export-copy">
+          <h3>school-gradebook-export.xlsx</h3>
+          <p id="exportWhat"></p>
+        </div>
+        <button class="btn btn-primary" id="exportBtn">Download spreadsheet</button>
+      </div>
+      <div id="exportStatus" class="status-msg" hidden></div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

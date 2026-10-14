@@ -1,7 +1,7 @@
 {
   "name": "school-report-system",
   "version": "1.0.0",
-  "description": "Lightweight, no-database school report card system (Excel import/export, in-memory + JSON persistence)",
+  "description": "School report card and performance system: Excel import, role-based views, mark entry",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,6 +11,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "jszip": "^3.10.1"
   }
 }
